@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>読む — Estúdio de Leitura Japonesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Zen+Old+Mincho:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --indigo-900:#12203a;
+  --indigo-800:#1a2e4f;
+  --indigo-700:#233d66;
+  --indigo-600:#2f4d7d;
+  --paper:#f2e9d8;
+  --paper-dim:#e6dac2;
+  --ink:#20180f;
+  --ink-soft:#4a4032;
+  --shu:#c8372a;
+  --shu-light:#e35a3f;
+  --shu-dim:#9c2b21;
+  --gold:#c9a15a;
+  --line:rgba(242,233,216,0.14);
+  --shadow: 0 18px 40px -20px rgba(0,0,0,0.6);
+  --radius: 14px;
+  --font-display:'Shippori Mincho', serif;
+  --font-body:'Zen Kaku Gothic New', sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(200,55,42,0.10), transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(201,161,90,0.10), transparent 45%),
+    var(--indigo-900);
+  color:var(--paper);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--shu); color:var(--paper);}
+button{font-family:inherit; cursor:pointer;}
+a{color:inherit;}
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ---------- Sidebar / history rail ---------- */
+.rail{
+  width:260px;
+  flex-shrink:0;
+  background:linear-gradient(180deg, var(--indigo-800), var(--indigo-900));
+  border-right:1px solid var(--line);
+  padding:22px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.brand{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  padding:0 4px;
+}
+.brand .kanji{
+  font-family:var(--font-display);
+  font-size:30px;
+  font-weight:700;
+  color:var(--paper);
+  line-height:1;
+}
+.brand .sub{
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+.new-doc-btn{
+  border:1px solid var(--shu);
+  background:transparent;
+  color:var(--paper);
+  padding:11px 14px;
+  border-radius:10px;
+  font-size:13.5px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:background .15s ease, transform .1s ease;
+}
+.new-doc-btn:hover{background:rgba(200,55,42,0.18);}
+.new-doc-btn:active{transform:scale(.97);}
+.rail-label{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(242,233,216,0.45);
+  margin:6px 4px -4px;
+}
+.history-list{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow-y:auto;
+}
+.history-item{
+  padding:10px 10px;
+  border-radius:9px;
+  font-size:13px;
+  color:rgba(242,233,216,0.85);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+  border:1px solid transparent;
+}
+.history-item:hover{background:rgba(242,233,216,0.06);}
+.history-item.active{background:rgba(200,55,42,0.16); border-color:rgba(200,55,42,0.35);}
+.history-item .htitle{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
+}
+.history-item .hdel{
+  opacity:0; font-size:14px; color:rgba(242,233,216,0.5); padding:2px 4px; border-radius:5px;
+}
+.history-item:hover .hdel{opacity:1;}
+.history-item .hdel:hover{color:var(--shu-light);}
+.history-empty{
+  font-size:12.5px; color:rgba(242,233,216,0.35); padding:8px 6px; line-height:1.5;
+}
+
+/* ---------- Main ---------- */
+.main{
+  flex:1;
+  min-width:0;
+  padding:30px 34px 60px;
+  display:flex;
+  flex-direction:column;
+}
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; gap:12px;
+}
+.rail-toggle{
+  display:none;
+  background:rgba(242,233,216,0.08);
+  border:1px solid var(--line);
+  color:var(--paper);
+  width:38px; height:38px; border-radius:9px; align-items:center; justify-content:center; font-size:16px;
+}
+.doc-title{
+  font-family:var(--font-display);
+  font-size:22px;
+  font-weight:600;
+  color:var(--paper);
+}
+.doc-title .fx{color:var(--gold); font-weight:400; font-size:14px; margin-left:8px;}
+
+/* ---------- Upload screen ---------- */
+.hero{
+  max-width:760px;
+  margin:26px auto 8px;
+  text-align:center;
+}
+.hero .seal{
+  width:64px; height:64px; border-radius:50%;
+  background:var(--shu);
+  color:var(--paper);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display);
+  font-size:26px; font-weight:700;
+  margin:0 auto 22px;
+  box-shadow:0 10px 30px -8px rgba(200,55,42,0.6);
+}
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(28px, 4vw, 42px);
+  line-height:1.25;
+  margin:0 0 14px;
+  font-weight:700;
+}
+.hero h1 .accent{color:var(--shu-light);}
+.hero p{
+  color:rgba(242,233,216,0.7);
+  font-size:15px;
+  line-height:1.7;
+  max-width:520px;
+  margin:0 auto 34px;
+}
+.dropzone{
+  max-width:640px;
+  margin:0 auto;
+  border:1.5px dashed rgba(201,161,90,0.5);
+  border-radius:18px;
+  padding:44px 24px;
+  background:rgba(242,233,216,0.03);
+  transition:border-color .15s ease, background .15s ease;
+}
+.dropzone.dragover{border-color:var(--shu-light); background:rgba(200,55,42,0.08);}
+.dropzone .dz-icon{font-size:34px; margin-bottom:14px;}
+.dropzone .dz-title{font-weight:700; font-size:15.5px; margin-bottom:6px;}
+.dropzone .dz-sub{font-size:12.5px; color:rgba(242,233,216,0.5); margin-bottom:20px;}
+.pick-btn{
+  background:var(--shu);
+  color:var(--paper);
+  border:none;
+  padding:12px 26px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:13.5px;
+  letter-spacing:.02em;
+  box-shadow:0 12px 24px -10px rgba(200,55,42,0.7);
+}
+.pick-btn:hover{background:var(--shu-light);}
+.file-chip{
+  margin-top:18px;
+  display:inline-flex; align-items:center; gap:10px;
+  background:rgba(242,233,216,0.07);
+  border:1px solid var(--line);
+  padding:8px 14px; border-radius:999px;
+  font-size:13px;
+}
+.file-chip button{background:none;border:none;color:var(--shu-light);font-size:13px;font-weight:700;}
+.process-btn{
+  margin-top:22px;
+  background:var(--gold);
+  color:var(--indigo-900);
+  border:none;
+  padding:13px 30px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:14px;
+  display:none;
+}
+.process-btn.show{display:inline-flex;}
+.process-btn:disabled{opacity:.5;}
+
+/* ---------- Progress ---------- */
+.progress-wrap{
+  max-width:520px; margin:36px auto 0;
+}
+.progress-step{
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; color:rgba(242,233,216,0.4);
+  padding:6px 0;
+}
+.progress-step.active{color:var(--paper);}
+.progress-step.done{color:var(--gold);}
+.progress-dot{
+  width:8px; height:8px; border-radius:50%;
+  background:rgba(242,233,216,0.2); flex-shrink:0;
+}
+.progress-step.active .progress-dot{background:var(--shu-light); box-shadow:0 0 0 4px rgba(200,55,42,0.2);}
+.progress-step.done .progress-dot{background:var(--gold);}
+.error-box{
+  max-width:600px; margin:22px auto 0;
+  background:rgba(200,55,42,0.12);
+  border:1px solid rgba(200,55,42,0.4);
+  color:var(--paper);
+  padding:14px 18px; border-radius:12px;
+  font-size:13.5px; line-height:1.6;
+}
+
+/* ---------- Tabs ---------- */
+.tabs{
+  display:flex; gap:6px; margin-bottom:22px; flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  padding-bottom:0;
+}
+.tab-btn{
+  background:none; border:none; color:rgba(242,233,216,0.55);
+  padding:10px 4px; margin-right:22px;
+  font-size:14px; font-weight:700; letter-spacing:.01em;
+  border-bottom:2px solid transparent;
+  position:relative; top:1px;
+}
+.tab-btn.active{color:var(--paper); border-color:var(--shu);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---------- Reading pane ---------- */
+.reading-card{
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 43px, rgba(201,161,90,0.10) 43px, rgba(201,161,90,0.10) 44px),
+    repeating-linear-gradient(90deg, transparent, transparent 43px, rgba(201,161,90,0.10) 43px, rgba(201,161,90,0.10) 44px),
+    var(--indigo-800);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:36px 32px;
+  box-shadow:var(--shadow);
+  font-family:var(--font-display);
+  font-size:27px;
+  line-height:2.5;
+  letter-spacing:.02em;
+  writing-mode:horizontal-tb;
+}
+.reading-hint{
+  font-family:var(--font-body);
+  font-size:12.5px;
+  color:rgba(242,233,216,0.45);
+  margin-bottom:14px;
+  display:flex; gap:18px; flex-wrap:wrap;
+}
+.reading-hint b{color:var(--gold); font-weight:700;}
+.seg{position:relative; display:inline;}
+.seg.kanji-seg{cursor:default; border-bottom:1px dotted rgba(201,161,90,0.55);}
+.seg.gram-seg{cursor:pointer; color:var(--shu-light); border-bottom:2px solid var(--shu);}
+.seg.gram-seg:hover{background:rgba(200,55,42,0.14); border-radius:4px;}
+.furigana-tip{
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--gold);
+  color:var(--indigo-900);
+  font-family:var(--font-body);
+  font-size:14px;
+  font-weight:700;
+  padding:2px 8px;
+  border-radius:6px;
+  white-space:nowrap;
+  margin-bottom:4px;
+  pointer-events:none;
+  z-index:5;
+}
+.furigana-tip::after{
+  content:'';
+  position:absolute; top:100%; left:50%; transform:translateX(-50%);
+  border:5px solid transparent; border-top-color:var(--gold);
+}
+
+/* ---------- Grammar modal ---------- */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(10,15,26,0.66);
+  display:none; align-items:flex-end; justify-content:center; z-index:50;
+  padding:0;
+}
+.modal-backdrop.show{display:flex;}
+.modal{
+  background:var(--paper);
+  color:var(--ink);
+  width:100%; max-width:560px;
+  border-radius:20px 20px 0 0;
+  padding:26px 26px 30px;
+  max-height:80vh; overflow-y:auto;
+  box-shadow:0 -20px 50px rgba(0,0,0,0.5);
+}
+@media (min-width:720px){
+  .modal-backdrop{align-items:center;}
+  .modal{border-radius:18px; margin-bottom:6vh;}
+}
+.modal .m-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+.modal .m-phrase{font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--shu-dim);}
+.modal .m-close{background:none; border:none; font-size:20px; color:var(--ink-soft);}
+.modal .m-title{font-size:13px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:18px;}
+.modal h4{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--shu); margin:18px 0 6px;}
+.modal p{font-size:14.5px; line-height:1.7; margin:0;}
+.modal .ex{
+  background:rgba(200,55,42,0.06); border-left:3px solid var(--shu);
+  padding:10px 14px; border-radius:0 8px 8px 0; margin-top:8px;
+}
+.modal .ex .jp{font-family:var(--font-display); font-size:16px; margin-bottom:3px;}
+.modal .ex .pt{font-size:13px; color:var(--ink-soft);}
+
+/* ---------- ELI5 ---------- */
+.eli5-card{
+  background:var(--paper); color:var(--ink);
+  border-radius:var(--radius); padding:32px;
+  box-shadow:var(--shadow);
+  font-size:16.5px; line-height:1.85;
+  max-width:720px;
+}
+.eli5-card .badge{
+  display:inline-block; background:var(--shu); color:var(--paper);
+  font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  padding:5px 12px; border-radius:999px; margin-bottom:16px;
+}
+
+/* ---------- Source toggle ---------- */
+.src-toggle{
+  display:inline-flex; background:rgba(242,233,216,0.06); border:1px solid var(--line);
+  border-radius:999px; padding:3px; margin-bottom:20px;
+}
+.src-toggle button{
+  border:none; background:none; color:rgba(242,233,216,0.6);
+  padding:8px 18px; border-radius:999px; font-size:13px; font-weight:700;
+}
+.src-toggle button.active{background:var(--shu); color:var(--paper);}
+.gen-btn{
+  background:var(--indigo-700); border:1px solid var(--gold); color:var(--paper);
+  padding:10px 20px; border-radius:999px; font-size:13px; font-weight:700; margin-left:10px;
+}
+.gen-btn:hover{background:var(--indigo-600);}
+.empty-panel{
+  color:rgba(242,233,216,0.5); font-size:14px; padding:40px 0; text-align:center;
+}
+
+/* ---------- Flashcards ---------- */
+.flash-wrap{max-width:480px; margin:0 auto;}
+.flash-count{text-align:center; font-size:12.5px; color:rgba(242,233,216,0.5); margin-bottom:14px;}
+.flashcard{
+  height:320px; perspective:1200px; margin-bottom:22px;
+}
+.flashcard-inner{
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,.2,.2,1);
+  cursor:pointer;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg);}
+.flash-face{
+  position:absolute; inset:0; backface-visibility:hidden;
+  border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:24px; text-align:center; box-shadow:var(--shadow);
+}
+.flash-front{
+  background:var(--indigo-800); border:1px solid var(--gold);
+}
+.flash-front .fc-main{font-family:var(--font-display); font-size:64px; font-weight:700;}
+.flash-front .fc-tap{position:absolute; bottom:16px; font-size:11px; color:rgba(242,233,216,0.4);}
+.flash-back{
+  background:var(--paper); color:var(--ink); transform:rotateY(180deg);
+}
+.flash-back .fc-furigana{font-size:15px; color:var(--shu); font-weight:700; margin-bottom:6px;}
+.flash-back .fc-meaning{font-family:var(--font-display); font-size:21px; font-weight:700; margin-bottom:12px;}
+.flash-back .fc-mnemonic{font-size:13px; line-height:1.6; color:var(--ink-soft);}
+.flash-nav{display:flex; justify-content:center; gap:12px; align-items:center;}
+.flash-nav button{
+  background:rgba(242,233,216,0.07); border:1px solid var(--line); color:var(--paper);
+  width:40px; height:40px; border-radius:50%; font-size:16px;
+}
+.flash-nav .shuffle{width:auto; border-radius:999px; padding:0 16px; font-size:13px; font-weight:700;}
+
+/* ---------- Quiz ---------- */
+.quiz-wrap{max-width:620px;}
+.quiz-q{
+  background:var(--indigo-800); border:1px solid var(--line); border-radius:14px;
+  padding:22px 24px; margin-bottom:18px;
+}
+.quiz-q .qn{font-size:11px; color:var(--gold); font-weight:800; letter-spacing:.1em; margin-bottom:6px;}
+.quiz-q .qtext{font-size:15.5px; line-height:1.6; margin-bottom:16px;}
+.quiz-opt{
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-radius:10px; border:1px solid var(--line);
+  margin-bottom:8px; font-size:14px; background:rgba(242,233,216,0.03);
+}
+.quiz-opt:hover{background:rgba(242,233,216,0.07);}
+.quiz-opt.correct{border-color:var(--gold); background:rgba(201,161,90,0.14);}
+.quiz-opt.wrong{border-color:var(--shu); background:rgba(200,55,42,0.14);}
+.quiz-opt input{accent-color:var(--shu);}
+.quiz-explain{
+  margin-top:10px; font-size:13px; color:rgba(242,233,216,0.7);
+  background:rgba(242,233,216,0.05); padding:10px 12px; border-radius:8px; display:none;
+}
+.quiz-explain.show{display:block;}
+.quiz-submit{
+  background:var(--shu); color:var(--paper); border:none; padding:13px 28px;
+  border-radius:999px; font-weight:800; font-size:14px;
+}
+.quiz-score{
+  text-align:center; font-family:var(--font-display); font-size:20px; margin-bottom:18px; color:var(--gold);
+}
+
+/* ---------- Loading spinner ---------- */
+.spinner{
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid rgba(242,233,216,0.25); border-top-color:var(--shu-light);
+  animation:spin .7s linear infinite; display:inline-block; vertical-align:-3px; margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media (max-width:860px){
+  .rail{
+    position:fixed; left:0; top:0; bottom:0; z-index:40;
+    transform:translateX(-100%); transition:transform .2s ease;
+  }
+  .rail.open{transform:translateX(0);}
+  .rail-toggle{display:flex;}
+  .main{padding:20px 16px 50px;}
+  .reading-card{font-size:22px; padding:24px 18px; line-height:2.3;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" id="rail">
+    <div class="brand"><span class="kanji">読む</span><span class="sub">Study Lab</span></div>
+    <button class="new-doc-btn" id="newDocBtn">＋ Novo material</button>
+    <div class="rail-label">Meus materiais</div>
+    <div class="history-list" id="historyList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="rail-toggle" id="railToggle">☰</button>
+      <div class="doc-title" id="docTitleBar" style="display:none;"></div>
+      <div></div>
+    </div>
+
+    <!-- Upload screen -->
+    <section id="uploadScreen">
+      <div class="hero">
+        <div class="seal">朱</div>
+        <h1>Transforme sua <span class="accent">apostila</span> num material <span class="accent">interativo</span></h1>
+        <p>Envie a foto ou o PDF de uma página de japonês. O furigana aparece ao passar o mouse, a gramática vira explicação em português, e você ganha resumo, flashcards e quiz sobre o conteúdo.</p>
+        <div class="dropzone" id="dropzone">
+          <div class="dz-icon">🖋️</div>
+          <div class="dz-title">Arraste a imagem ou o PDF aqui</div>
+          <div class="dz-sub">JPG, PNG ou PDF — de preferência um trecho curto (algumas frases a um parágrafo) para melhores resultados</div>
+          <button class="pick-btn" id="pickBtn">Escolher arquivo</button>
+          <input type="file" id="fileInput" accept="image/*,.pdf,application/pdf" style="display:none;">
+          <div id="fileChipWrap"></div>
+          <div><button class="process-btn" id="processBtn">摩 Processar material</button></div>
+        </div>
+        <div class="progress-wrap" id="progressWrap" style="display:none;"></div>
+        <div class="error-box" id="errorBox" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- Document viewer -->
+    <section id="docScreen" style="display:none;">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="leitura">Leitura</button>
+        <button class="tab-btn" data-tab="eli5">Explicação fácil</button>
+        <button class="tab-btn" data-tab="flash">Flashcards</button>
+        <button class="tab-btn" data-tab="quiz">Quiz</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-leitura">
+        <div class="reading-hint"><span><b>Passe o mouse</b> sobre o kanji → furigana</span><span><b>Clique</b> no texto sublinhado em vermelho → explicação da gramática</span></div>
+        <div class="reading-card" id="readingCard"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-eli5">
+        <div class="eli5-card"><span class="badge">como pra uma criança de 5 anos</span><div id="eli5Content"></div></div>
+      </div>
+
+      <div class="tab-panel" id="panel-flash">
+        <div>
+          <div class="src-toggle" id="flashToggle">
+            <button data-src="kanji" class="active">Kanji</button>
+            <button data-src="gramatica">Gramática</button>
+          </div>
+        </div>
+        <div id="flashArea"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-quiz">
+        <div>
+          <div class="src-toggle" id="quizToggle">
+            <button data-src="kanji" class="active">Kanji</button>
+            <button data-src="gramatica">Gramática</button>
+          </div>
+        </div>
+        <div id="quizArea"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+/* ============ State ============ */
+let state = {
+  doc: null,        // current document object
+  docId: null,
+  index: [],         // library index [{id,title,createdAt}]
+  flashSrc: 'kanji',
+  flashIdx: 0,
+  flashFlipped: false,
+  quizSrc: 'kanji',
+  quizAnswers: {},
+};
+
+const MODEL = "claude-sonnet-4-6";
+
+/* ============ Storage helpers ============ */
+async function storageGet(key){
+  try{
+    const r = await window.storage.get(key, false);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function storageSet(key, value){
+  try{ await window.storage.set(key, JSON.stringify(value), false); }
+  catch(e){ console.error('storage set failed', e); }
+}
+async function storageDelete(key){
+  try{ await window.storage.delete(key, false); }catch(e){}
+}
+
+async function loadIndex(){
+  state.index = (await storageGet('nihongo:index')) || [];
+}
+async function saveIndex(){
+  await storageSet('nihongo:index', state.index);
+}
+async function saveDoc(){
+  await storageSet('nihongo:doc:' + state.docId, state.doc);
+  const meta = state.index.find(d => d.id === state.docId);
+  if(meta){ meta.title = state.doc.title; }
+  await saveIndex();
+}
+
+/* ============ Claude API ============ */
+async function callClaudeRaw(system, content, maxTokens){
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: maxTokens || 1000,
+      system: system,
+      messages: [{ role: "user", content: content }]
+    })
+  });
+  if(!resp.ok){
+    const t = await resp.text();
+    throw new Error("Falha na API (" + resp.status + "): " + t.slice(0,200));
+  }
+  const data = await resp.json();
+  const blocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
+  return blocks.join("\n");
+}
+
+function parseJSONLoose(text){
+  let clean = text.trim();
+  clean = clean.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+  if(start >= 0 && end > start){ clean = clean.slice(start, end + 1); }
+  return JSON.parse(clean);
+}
+
+async function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result.split(',')[1]);
+    r.onerror = () => reject(new Error("Não consegui ler o arquivo."));
+    r.readAsDataURL(file);
+  });
+}
+
+/* ============ Pipeline ============ */
+const STEPS = [
+  { key:'transcribe', label:'Lendo o texto japonês da imagem' },
+  { key:'segments', label:'Preparando furigana e marcando gramática' },
+  { key:'explanations', label:'Explicando os pontos gramaticais em português' },
+  { key:'eli5', label:'Escrevendo a versão fácil (5 anos)' },
+];
+
+function setProgress(stepIndex, status){
+  const wrap = document.getElementById('progressWrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = STEPS.map((s, i) => {
+    let cls = '';
+    if(i < stepIndex) cls = 'done';
+    else if(i === stepIndex) cls = 'active';
+    const icon = i < stepIndex ? '✓' : (i === stepIndex ? '<span class="spinner"></span>' : '');
+    return `<div class="progress-step ${cls}"><span class="progress-dot"></span>${icon !== '' && i===stepIndex ? '' : ''}<span>${i<stepIndex?'✓ ':''}${s.label}</span></div>`;
+  }).join('');
+}
+
+function showError(msg){
+  const box = document.getElementById('errorBox');
+  box.style.display = 'block';
+  box.textContent = msg;
+}
+function hideError(){
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+async function runPipeline(file){
+  hideError();
+  document.getElementById('processBtn').disabled = true;
+  try{
+    const base64 = await fileToBase64(file);
+    const isPdf = file.type === 'application/pdf';
+    const fileBlock = isPdf
+      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
+      : { type: "image", source: { type: "base64", media_type: file.type || "image/jpeg", data: base64 } };
+
+    /* Step 1: transcribe + candidate grammar phrases (vision) */
+    setProgress(0);
+    const step1sys = "Você transcreve texto japonês de imagens de material didático para um app de estudos. Responda APENAS com JSON válido, sem markdown, sem explicações extras.";
+    const step1prompt = `Olhe a imagem/documento anexado e:
+1. Transcreva o texto japonês exatamente como está escrito, preservando quebras de linha com \\n.
+2. Dê um título curto em português (max 6 palavras) descrevendo o conteúdo.
+3. Liste no máximo 6 pontos gramaticais importantes para ensinar (partículas, conjugações, estruturas, expressões) que aparecem no texto, cada um com a frase/trecho EXATO como aparece no texto.
+
+Responda só com este JSON:
+{"title":"...", "raw_text":"...", "grammarPoints":[{"id":"g1","phrase":"trecho exato do texto","shortLabel":"nome curto em português"}]}`;
+    const step1 = await callClaudeRaw(step1sys, [ fileBlock, { type: "text", text: step1prompt } ], 1000);
+    const parsed1 = parseJSONLoose(step1);
+
+    /* Step 2: segments with furigana + grammar linking (text only) */
+    setProgress(1);
+    const step2sys = "Você prepara dados de leitura assistida de japonês (furigana e marcação gramatical) em JSON estrito, sem markdown.";
+    const step2prompt = `Texto japonês:\n"""${parsed1.raw_text}"""\n\nPontos gramaticais já identificados:\n${JSON.stringify(parsed1.grammarPoints || [])}\n\nDivida o texto em segmentos sequenciais que, concatenados no campo "text", reconstroem o texto EXATAMENTE (incluindo pontuação, espaços e \\n). Regras:
+- Agrupe kanji consecutivos que formam uma mesma palavra em um único segmento.
+- Para todo segmento que contenha kanji, preencha "furigana" com a leitura em hiragana. Para segmentos sem kanji, "furigana" é null.
+- "isKanji": true se o segmento contém ao menos um kanji.
+- "grammarId": o id do ponto gramatical (de grammarPoints) se este segmento faz parte dele, senão null.
+Responda só com: {"segments":[{"text":"...","furigana":null,"isKanji":false,"grammarId":null}, ...]}`;
+    const step2 = await callClaudeRaw(step2sys, [{ type: "text", text: step2prompt }], 1000);
+    const parsed2 = parseJSONLoose(step2);
+
+    /* Step 3: grammar explanations (text only) */
+    setProgress(2);
+    let explanations = [];
+    if(parsed1.grammarPoints && parsed1.grammarPoints.length){
+      const step3sys = "Você é um professor de japonês explicando gramática para brasileiros. Responda APENAS com JSON válido.";
+      const step3prompt = `Texto original: """${parsed1.raw_text}"""\n\nPara cada ponto gramatical abaixo, escreva uma explicação em português do Brasil, clara e objetiva, com nuances de uso e 2 exemplos (frase em japonês + tradução).\nPontos: ${JSON.stringify(parsed1.grammarPoints)}\n\nResponda só com: {"explanations":[{"id":"g1","title":"nome do ponto","explanation":"o que é e como se usa (3-5 frases)","nuance":"quando usar isso e não algo parecido (2-3 frases)","examples":[{"jp":"...","pt":"..."},{"jp":"...","pt":"..."}]}]}`;
+      const step3 = await callClaudeRaw(step3sys, [{ type: "text", text: step3prompt }], 1000);
+      explanations = parseJSONLoose(step3).explanations || [];
+    }
+
+    /* Step 4: ELI5 (text only) */
+    setProgress(3);
+    const step4sys = "Você explica gramática japonesa para uma criança de 5 anos, em português do Brasil, de forma divertida e simples. Responda APENAS com JSON válido.";
+    const step4prompt = `Texto: """${parsed1.raw_text}"""\nPontos gramaticais: ${JSON.stringify((parsed1.grammarPoints||[]).map(g=>g.shortLabel))}\n\nEscreva uma explicação bem simples, com analogias do dia a dia e alguns emojis, como se estivesse explicando pra uma criança de 5 anos o que esse texto está ensinando sobre japonês. Use parágrafos curtos.\nResponda só com: {"eli5":"texto aqui, pode usar \\n para quebras de parágrafo"}`;
+    const step4 = await callClaudeRaw(step4sys, [{ type: "text", text: step4prompt }], 1000);
+    const eli5 = parseJSONLoose(step4).eli5 || '';
+
+    /* Build doc */
+    const id = 'd' + Date.now();
+    const doc = {
+      id,
+      title: parsed1.title || 'Material sem título',
+      createdAt: new Date().toISOString(),
+      raw_text: parsed1.raw_text,
+      segments: parsed2.segments || [],
+      grammarPoints: parsed1.grammarPoints || [],
+      explanations,
+      eli5,
+      kanjiCards: null,
+      grammarCards: null,
+      quizKanji: null,
+      quizGrammar: null,
+    };
+
+    state.docId = id;
+    state.doc = doc;
+    state.index.unshift({ id, title: doc.title, createdAt: doc.createdAt });
+    await saveDoc();
+    await saveIndex();
+
+    document.getElementById('processBtn').disabled = false;
+    openDocument(doc.id, doc);
+    renderHistory();
+  }catch(err){
+    console.error(err);
+    document.getElementById('processBtn').disabled = false;
+    document.getElementById('progressWrap').style.display = 'none';
+    showError("Não consegui processar esse material. " + (err.message || '') + " Tente uma imagem mais nítida ou um trecho mais curto.");
+  }
+}
+
+/* ============ Generation on demand (flashcards / quiz) ============ */
+async function generateCards(source){
+  const doc = state.doc;
+  const key = source === 'kanji' ? 'kanjiCards' : 'grammarCards';
+  if(doc[key]) return doc[key];
+
+  let sys, prompt;
+  if(source === 'kanji'){
+    const kanjiSegs = uniqueBy(doc.segments.filter(s => s.isKanji && s.furigana), s => s.text);
+    if(kanjiSegs.length === 0) return [];
+    sys = "Você cria flashcards de kanji para estudantes brasileiros de japonês. Responda APENAS com JSON válido.";
+    prompt = `Crie flashcards para estas palavras/kanjis: ${JSON.stringify(kanjiSegs.map(s=>({kanji:s.text, furigana:s.furigana})))}\nPara cada um, dê o significado em português e uma dica de memorização curta (mnemônico) em português.\nResponda só com: {"cards":[{"front":"漢字","furigana":"かんじ","meaning_pt":"...","mnemonic_pt":"..."}]}`;
+  } else {
+    if(!doc.grammarPoints.length) return [];
+    sys = "Você cria flashcards de gramática japonesa para estudantes brasileiros. Responda APENAS com JSON válido.";
+    prompt = `Pontos gramaticais do texto: ${JSON.stringify(doc.grammarPoints)}\nExplicações já escritas: ${JSON.stringify(doc.explanations)}\nCrie um flashcard por ponto gramatical.\nResponda só com: {"cards":[{"front":"trecho ou nome do ponto","furigana":"leitura se aplicável ou null","meaning_pt":"resumo do uso em 1 frase","mnemonic_pt":"dica curta para lembrar quando usar"}]}`;
+  }
+  const raw = await callClaudeRaw(sys, [{ type: "text", text: prompt }], 1000);
+  const cards = parseJSONLoose(raw).cards || [];
+  doc[key] = cards;
+  await saveDoc();
+  return cards;
+}
+
+async function generateQuiz(source){
+  const doc = state.doc;
+  const key = source === 'kanji' ? 'quizKanji' : 'quizGrammar';
+  if(doc[key]) return doc[key];
+
+  let sys, prompt;
+  if(source === 'kanji'){
+    const kanjiSegs = uniqueBy(doc.segments.filter(s => s.isKanji && s.furigana), s => s.text);
+    if(kanjiSegs.length === 0) return [];
+    sys = "Você cria quizzes de kanji em português para estudantes brasileiros de japonês. Responda APENAS com JSON válido.";
+    prompt = `Kanjis/palavras do texto: ${JSON.stringify(kanjiSegs.map(s=>({kanji:s.text, furigana:s.furigana})))}\nCrie 5 perguntas de múltipla escolha (leitura ou significado dos kanjis), em português, com 4 alternativas cada.\nResponda só com: {"questions":[{"question":"...","options":["a","b","c","d"],"correctIndex":0,"explanation":"..."}]}`;
+  } else {
+    if(!doc.grammarPoints.length) return [];
+    sys = "Você cria quizzes de gramática japonesa em português para estudantes brasileiros. Responda APENAS com JSON válido.";
+    prompt = `Texto: """${doc.raw_text}"""\nPontos gramaticais: ${JSON.stringify(doc.grammarPoints)}\nExplicações: ${JSON.stringify(doc.explanations)}\nCrie 5 perguntas de múltipla escolha em português testando o uso correto dessa gramática, com 4 alternativas cada.\nResponda só com: {"questions":[{"question":"...","options":["a","b","c","d"],"correctIndex":0,"explanation":"..."}]}`;
+  }
+  const raw = await callClaudeRaw(sys, [{ type: "text", text: prompt }], 1000);
+  const qs = parseJSONLoose(raw).questions || [];
+  doc[key] = qs;
+  await saveDoc();
+  return qs;
+}
+
+function uniqueBy(arr, keyFn){
+  const seen = new Set(); const out = [];
+  for(const item of arr){ const k = keyFn(item); if(!seen.has(k)){ seen.add(k); out.push(item); } }
+  return out;
+}
+
+/* ============ Rendering ============ */
+function renderHistory(){
+  const el = document.getElementById('historyList');
+  if(!state.index.length){
+    el.innerHTML = '<div class="history-empty">Seus materiais processados vão aparecer aqui.</div>';
+    return;
+  }
+  el.innerHTML = state.index.map(d => `
+    <div class="history-item ${d.id===state.docId?'active':''}" data-id="${d.id}">
+      <span class="htitle">${escapeHtml(d.title)}</span>
+      <span class="hdel" data-del="${d.id}">✕</span>
+    </div>`).join('');
+  el.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+      if(e.target.dataset.del) return;
+      const id = item.dataset.id;
+      const doc = await storageGet('nihongo:doc:' + id);
+      if(doc){ openDocument(id, doc); }
+    });
+  });
+  el.querySelectorAll('.hdel').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.del;
+      await storageDelete('nihongo:doc:' + id);
+      state.index = state.index.filter(d => d.id !== id);
+      await saveIndex();
+      if(state.docId === id){ showUploadScreen(); }
+      renderHistory();
+    });
+  });
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function openDocument(id, doc){
+  state.docId = id;
+  state.doc = doc;
+  state.flashIdx = 0; state.flashFlipped = false; state.flashSrc = 'kanji'; state.quizSrc = 'kanji'; state.quizAnswers = {};
+  document.getElementById('uploadScreen').style.display = 'none';
+  document.getElementById('docScreen').style.display = 'block';
+  document.getElementById('docTitleBar').style.display = 'block';
+  document.getElementById('docTitleBar').textContent = doc.title;
+  renderReading();
+  renderEli5();
+  document.querySelectorAll('.flash-toggle-btn, #flashToggle button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#flashToggle button[data-src="kanji"]').classList.add('active');
+  document.querySelector('#quizToggle button[data-src="kanji"]').classList.add('active');
+  renderFlashArea();
+  renderQuizArea();
+  switchTab('leitura');
+  renderHistory();
+  closeRailOnMobile();
+}
+
+function showUploadScreen(){
+  state.docId = null; state.doc = null;
+  document.getElementById('docScreen').style.display = 'none';
+  document.getElementById('uploadScreen').style.display = 'block';
+  document.getElementById('docTitleBar').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('processBtn').classList.remove('show');
+  document.getElementById('fileChipWrap').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+  hideError();
+  renderHistory();
+}
+
+function renderReading(){
+  const card = document.getElementById('readingCard');
+  const doc = state.doc;
+  card.innerHTML = doc.segments.map((seg, i) => {
+    const text = escapeHtml(seg.text).replace(/\n/g, '<br>');
+    if(seg.grammarId){
+      return `<span class="seg gram-seg" data-idx="${i}" data-gram="${seg.grammarId}">${text}</span>`;
+    }
+    if(seg.isKanji && seg.furigana){
+      return `<span class="seg kanji-seg" data-idx="${i}" data-furi="${escapeHtml(seg.furigana)}">${text}</span>`;
+    }
+    return `<span class="seg">${text}</span>`;
+  }).join('');
+
+  card.querySelectorAll('.kanji-seg').forEach(el => {
+    let tip = null;
+    const show = () => {
+      tip = document.createElement('span');
+      tip.className = 'furigana-tip';
+      tip.textContent = el.dataset.furi;
+      el.appendChild(tip);
+    };
+    const hide = () => { if(tip){ tip.remove(); tip = null; } };
+    el.addEventListener('mouseenter', show);
+    el.addEventListener('mouseleave', hide);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); if(tip) hide(); else show(); }, {passive:false});
+  });
+
+  card.querySelectorAll('.gram-seg').forEach(el => {
+    el.addEventListener('click', () => openGrammarModal(el.dataset.gram));
+  });
+}
+
+function openGrammarModal(gramId){
+  const doc = state.doc;
+  const gp = doc.grammarPoints.find(g => g.id === gramId);
+  const ex = doc.explanations.find(e => e.id === gramId);
+  const backdrop = document.getElementById('modalBackdrop');
+  const body = document.getElementById('modalBody');
+  if(!gp){ return; }
+  body.innerHTML = `
+    <div class="m-head">
+      <span class="m-phrase">${escapeHtml(gp.phrase)}</span>
+      <button class="m-close" id="modalClose">✕</button>
+    </div>
+    <div class="m-title">${escapeHtml((ex && ex.title) || gp.shortLabel || 'Gramática')}</div>
+    ${ex ? `
+      <h4>O que é</h4><p>${escapeHtml(ex.explanation)}</p>
+      <h4>Nuance de uso</h4><p>${escapeHtml(ex.nuance)}</p>
+      <h4>Exemplos</h4>
+      ${(ex.examples||[]).map(x => `<div class="ex"><div class="jp">${escapeHtml(x.jp)}</div><div class="pt">${escapeHtml(x.pt)}</div></div>`).join('')}
+    ` : `<p>Explicação não disponível para este trecho.</p>`}
+  `;
+  backdrop.classList.add('show');
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+}
+function closeModal(){ document.getElementById('modalBackdrop').classList.remove('show'); }
+
+function renderEli5(){
+  const el = document.getElementById('eli5Content');
+  const text = state.doc.eli5 || '';
+  el.innerHTML = text.split(/\n+/).filter(p=>p.trim()).map(p => `<p style="margin:0 0 14px;">${escapeHtml(p)}</p>`).join('');
+}
+
+/* ---- Flashcards ---- */
+async function renderFlashArea(){
+  const area = document.getElementById('flashArea');
+  const doc = state.doc;
+  const key = state.flashSrc === 'kanji' ? 'kanjiCards' : 'grammarCards';
+  if(!doc[key]){
+    area.innerHTML = `<div class="empty-panel"><div style="margin-bottom:14px;">Ainda não gerei flashcards de ${state.flashSrc==='kanji'?'kanji':'gramática'} para este material.</div><button class="gen-btn" id="genFlashBtn">✎ Gerar flashcards</button></div>`;
+    document.getElementById('genFlashBtn').addEventListener('click', async () => {
+      area.innerHTML = `<div class="empty-panel"><span class="spinner"></span> Gerando flashcards...</div>`;
+      try{
+        await generateCards(state.flashSrc);
+        state.flashIdx = 0; state.flashFlipped = false;
+        renderFlashArea();
+      }catch(err){
+        area.innerHTML = `<div class="empty-panel">Erro ao gerar flashcards. Tente novamente.</div>`;
+      }
+    });
+    return;
+  }
+  const cards = doc[key];
+  if(!cards.length){
+    area.innerHTML = `<div class="empty-panel">Não encontrei ${state.flashSrc==='kanji'?'kanjis':'pontos de gramática'} suficientes neste material.</div>`;
+    return;
+  }
+  const c = cards[state.flashIdx % cards.length];
+  area.innerHTML = `
+    <div class="flash-wrap">
+      <div class="flash-count">${state.flashIdx+1} / ${cards.length}</div>
+      <div class="flashcard ${state.flashFlipped?'flipped':''}" id="flashcardEl">
+        <div class="flashcard-inner">
+          <div class="flash-face flash-front">
+            <div class="fc-main">${escapeHtml(c.front)}</div>
+            <div class="fc-tap">toque para virar</div>
+          </div>
+          <div class="flash-face flash-back">
+            ${c.furigana ? `<div class="fc-furigana">${escapeHtml(c.furigana)}</div>` : ''}
+            <div class="fc-meaning">${escapeHtml(c.meaning_pt)}</div>
+            <div class="fc-mnemonic">${escapeHtml(c.mnemonic_pt||'')}</div>
+          </div>
+        </div>
+      </div>
+      <div class="flash-nav">
+        <button id="flashPrev">‹</button>
+        <button class="shuffle" id="flashShuffle">embaralhar</button>
+        <button id="flashNext">›</button>
+      </div>
+    </div>`;
+  document.getElementById('flashcardEl').addEventListener('click', () => {
+    state.flashFlipped = !state.flashFlipped;
+    document.getElementById('flashcardEl').classList.toggle('flipped');
+  });
+  document.getElementById('flashPrev').addEventListener('click', () => { state.flashIdx = (state.flashIdx - 1 + cards.length) % cards.length; state.flashFlipped=false; renderFlashArea(); });
+  document.getElementById('flashNext').addEventListener('click', () => { state.flashIdx = (state.flashIdx + 1) % cards.length; state.flashFlipped=false; renderFlashArea(); });
+  document.getElementById('flashShuffle').addEventListener('click', () => {
+    for(let i=cards.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [cards[i],cards[j]]=[cards[j],cards[i]]; }
+    state.flashIdx = 0; state.flashFlipped = false; renderFlashArea();
+  });
+}
+
+/* ---- Quiz ---- */
+async function renderQuizArea(){
+  const area = document.getElementById('quizArea');
+  const doc = state.doc;
+  const key = state.quizSrc === 'kanji' ? 'quizKanji' : 'quizGrammar';
+  if(!doc[key]){
+    area.innerHTML = `<div class="empty-panel"><div style="margin-bottom:14px;">Ainda não gerei perguntas de ${state.quizSrc==='kanji'?'kanji':'gramática'} para este material.</div><button class="gen-btn" id="genQuizBtn">✎ Gerar quiz</button></div>`;
+    document.getElementById('genQuizBtn').addEventListener('click', async () => {
+      area.innerHTML = `<div class="empty-panel"><span class="spinner"></span> Gerando perguntas...</div>`;
+      try{
+        await generateQuiz(state.quizSrc);
+        state.quizAnswers = {};
+        renderQuizArea();
+      }catch(err){
+        area.innerHTML = `<div class="empty-panel">Erro ao gerar o quiz. Tente novamente.</div>`;
+      }
+    });
+    return;
+  }
+  const qs = doc[key];
+  if(!qs.length){
+    area.innerHTML = `<div class="empty-panel">Não encontrei conteúdo suficiente para gerar perguntas.</div>`;
+    return;
+  }
+  area.innerHTML = `<div class="quiz-wrap">` + qs.map((q, qi) => `
+    <div class="quiz-q">
+      <div class="qn">Pergunta ${qi+1}</div>
+      <div class="qtext">${escapeHtml(q.question)}</div>
+      ${q.options.map((opt, oi) => `
+        <label class="quiz-opt" data-qi="${qi}" data-oi="${oi}">
+          <input type="radio" name="q${qi}" value="${oi}"> <span>${escapeHtml(opt)}</span>
+        </label>`).join('')}
+      <div class="quiz-explain" id="qexplain${qi}">${escapeHtml(q.explanation||'')}</div>
+    </div>
+  `).join('') + `<button class="quiz-submit" id="quizSubmit">Corrigir respostas</button><div class="quiz-score" id="quizScore" style="display:none;"></div></div>`;
+
+  area.querySelectorAll('.quiz-opt input').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const qi = e.target.closest('.quiz-opt').dataset.qi;
+      state.quizAnswers[qi] = parseInt(e.target.value);
+    });
+  });
+  document.getElementById('quizSubmit').addEventListener('click', () => {
+    let correct = 0;
+    qs.forEach((q, qi) => {
+      const chosen = state.quizAnswers[qi];
+      area.querySelectorAll(`.quiz-opt[data-qi="${qi}"]`).forEach(opt => {
+        const oi = parseInt(opt.dataset.oi);
+        if(oi === q.correctIndex) opt.classList.add('correct');
+        else if(oi === chosen) opt.classList.add('wrong');
+      });
+      document.getElementById('qexplain'+qi).classList.add('show');
+      if(chosen === q.correctIndex) correct++;
+    });
+    const scoreEl = document.getElementById('quizScore');
+    scoreEl.style.display = 'block';
+    scoreEl.textContent = `Você acertou ${correct} de ${qs.length}`;
+    document.getElementById('quizSubmit').style.display = 'none';
+  });
+}
+
+/* ============ Tabs ============ */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+}
+
+/* ============ Rail (mobile) ============ */
+function closeRailOnMobile(){
+  if(window.innerWidth <= 860){ document.getElementById('rail').classList.remove('open'); }
+}
+
+/* ============ Init & events ============ */
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadIndex();
+  renderHistory();
+
+  document.getElementById('railToggle').addEventListener('click', () => {
+    document.getElementById('rail').classList.toggle('open');
+  });
+  document.getElementById('newDocBtn').addEventListener('click', showUploadScreen);
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  let selectedFile = null;
+
+  document.getElementById('pickBtn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { if(fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+  ['dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
+  dropzone.addEventListener('drop', (e) => { if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  function handleFile(file){
+    selectedFile = file;
+    hideError();
+    document.getElementById('fileChipWrap').innerHTML = `<div class="file-chip"><span>${escapeHtml(file.name)}</span><button id="clearFile">remover</button></div>`;
+    document.getElementById('processBtn').classList.add('show');
+    document.getElementById('clearFile').addEventListener('click', () => {
+      selectedFile = null;
+      document.getElementById('fileChipWrap').innerHTML = '';
+      document.getElementById('processBtn').classList.remove('show');
+      fileInput.value = '';
+    });
+  }
+
+  document.getElementById('processBtn').addEventListener('click', () => {
+    if(selectedFile) runPipeline(selectedFile);
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+    if(e.target.id === 'modalBackdrop') closeModal();
+  });
+
+  document.getElementById('flashToggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#flashToggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.flashSrc = btn.dataset.src; state.flashIdx = 0; state.flashFlipped = false;
+    renderFlashArea();
+  });
+  document.getElementById('quizToggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#quizToggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.quizSrc = btn.dataset.src; state.quizAnswers = {};
+    renderQuizArea();
+  });
+});
+
+</script>
+</body>
+</html>
